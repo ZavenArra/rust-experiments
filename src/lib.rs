@@ -25,11 +25,6 @@ use stm32f1xx_hal::{
 };
 use unwrap_infallible::UnwrapInfallible;
 
-#[no_mangle]
-pub static CR: u8 = b'\r';
-#[no_mangle]
-pub static LF: u8 = b'\n';
-
 pub struct SerialInterfaceContext {
     rx: Rx<pac::USART2>,
     tx: Tx<pac::USART2>,
@@ -100,6 +95,8 @@ pub unsafe extern "C" fn rust_serial_read(serial_ptr: *mut SerialInterfaceContex
 
 #[no_mangle]
 pub unsafe extern "C" fn rust_serial_write(serial_ptr: *mut SerialInterfaceContext, value: u8) {
+    let CR: u8 = b'\r';
+    let LF: u8 = b'\n';
     let mut serial_context = Box::from_raw(serial_ptr);
     let tx = &mut serial_context.tx;
         block!(tx.write(value)).unwrap_infallible();
