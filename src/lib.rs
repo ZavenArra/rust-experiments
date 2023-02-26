@@ -105,5 +105,4 @@ pub unsafe extern "C" fn rust_serial_write(serial_ptr: *mut SerialInterfaceConte
         block!(tx.write(value)).unwrap_infallible();
         block!(tx.write(LF)).unwrap_infallible();
         block!(tx.write(CR)).unwrap_infallible();
-    return 0;
 }
