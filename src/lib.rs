@@ -5,17 +5,17 @@
 #![allow(clippy::empty_loop)]
 #![no_main]
 #![no_std]
+#![feature(alloc_error_handler)]
 
 extern crate alloc;
 
 use core::{default::Default, u8};
-
-use alloc::{boxed::Box, vec::{self, Vec}};
+use alloc::{boxed::Box, alloc::Layout, vec::{self, Vec}};
 use panic_halt as _;
-
+use core::panic::PanicInfo;
 use nb::block;
-
 use cortex_m_rt::entry;
+use embedded_alloc::Heap;
 use stm32f1xx_hal::{
     pac,
     gpio,
@@ -25,14 +25,42 @@ use stm32f1xx_hal::{
 };
 use unwrap_infallible::UnwrapInfallible;
 
+#[global_allocator]
+static HEAP: Heap = Heap::empty();
+
 pub struct SerialInterfaceContext {
     rx: Rx<pac::USART2>,
     tx: Tx<pac::USART2>,
-    chars: Vec<u8>,
 }
+
+fn alloc_heap() {
+    // Initialize the allocator BEFORE you use it
+    {
+        use core::mem::MaybeUninit;
+        const HEAP_SIZE: usize = 1024;
+        static mut HEAP_MEM: [MaybeUninit<u8>; HEAP_SIZE] = [MaybeUninit::uninit(); HEAP_SIZE];
+        unsafe { HEAP.init(HEAP_MEM.as_ptr() as usize, HEAP_SIZE) }
+    }
+
+    let mut xs = Vec::new();
+    xs.push(1);
+}
+
+#[alloc_error_handler]
+fn oom(_: Layout) -> ! {
+    loop {}
+}
+
+// #[panic_handler]
+// fn panic(_: &PanicInfo) -> ! {
+//     loop {}
+// }
 
 #[no_mangle]
 pub unsafe extern "C" fn rust_serial_interface_new() -> *mut SerialInterfaceContext {
+    
+    alloc_heap();
+    
     // Get access to the device specific peripherals from the peripheral access crate
     let p = pac::Peripherals::take().unwrap();
 
@@ -79,7 +107,6 @@ pub unsafe extern "C" fn rust_serial_interface_new() -> *mut SerialInterfaceCont
     let context = SerialInterfaceContext {
         rx: serial.rx,
         tx: serial.tx,
-        chars: Vec::new(),
     };
     Box::into_raw(Box::new(context))
 }
@@ -99,7 +126,7 @@ pub unsafe extern "C" fn rust_serial_write(serial_ptr: *mut SerialInterfaceConte
     let LF: u8 = b'\n';
     let mut serial_context = Box::from_raw(serial_ptr);
     let tx = &mut serial_context.tx;
-        block!(tx.write(value)).unwrap_infallible();
-        block!(tx.write(LF)).unwrap_infallible();
-        block!(tx.write(CR)).unwrap_infallible();
+    block!(tx.write(value)).unwrap_infallible();
+    block!(tx.write(LF)).unwrap_infallible();
+    block!(tx.write(CR)).unwrap_infallible();
 }

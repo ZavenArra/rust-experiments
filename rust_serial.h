@@ -7,10 +7,6 @@
 
 typedef struct SerialInterfaceContext SerialInterfaceContext;
 
-extern const uint8_t CR;
-
-extern const uint8_t LF;
-
 struct SerialInterfaceContext *rust_serial_interface_new(void);
 
 uint8_t rust_serial_read(struct SerialInterfaceContext *serial_ptr);
