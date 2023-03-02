@@ -10,15 +10,13 @@
 extern crate alloc;
 
 use core::{default::Default, u8};
-use alloc::{boxed::Box, alloc::Layout, vec::{self, Vec}};
+use alloc::{boxed::Box, alloc::Layout}; // vec::{self, Vec}
 use panic_halt as _;
-use core::panic::PanicInfo;
+// use core::panic::PanicInfo;
 use nb::block;
-use cortex_m_rt::entry;
 use embedded_alloc::Heap;
 use stm32f1xx_hal::{
     pac,
-    gpio,
     prelude::*,
     serial::{Config, Serial},
     serial::*
@@ -42,8 +40,8 @@ fn alloc_heap() {
         unsafe { HEAP.init(HEAP_MEM.as_ptr() as usize, HEAP_SIZE) }
     }
 
-    let mut xs = Vec::new();
-    xs.push(1);
+    // let mut xs = Vec::new();
+    // xs.push(1);
 }
 
 #[alloc_error_handler]
