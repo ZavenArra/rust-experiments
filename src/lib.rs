@@ -1,10 +1,6 @@
-//! Serial interface loopback test
-//!
-//! You have to short the TX and RX pins to make this program work
-
+#![no_std]
 #![allow(clippy::empty_loop)]
 #![no_main]
-#![no_std]
 #![feature(alloc_error_handler)]
 
 extern crate alloc;
@@ -111,7 +107,6 @@ pub unsafe extern "C" fn rust_serial_interface_new() -> *mut SerialInterfaceCont
 
 #[no_mangle]
 pub unsafe extern "C" fn rust_serial_read(serial_ptr: *mut SerialInterfaceContext) -> u8 {
-    
     let mut serial_context = Box::from_raw(serial_ptr);
     let rx = &mut serial_context.rx;
     // Read the byte that was just sent. Blocks until the read is complete
@@ -120,11 +115,11 @@ pub unsafe extern "C" fn rust_serial_read(serial_ptr: *mut SerialInterfaceContex
 
 #[no_mangle]
 pub unsafe extern "C" fn rust_serial_write(serial_ptr: *mut SerialInterfaceContext, value: u8) {
-    let CR: u8 = b'\r';
-    let LF: u8 = b'\n';
+    let cr: u8 = b'\r';
+    let lf: u8 = b'\n';
     let mut serial_context = Box::from_raw(serial_ptr);
     let tx = &mut serial_context.tx;
     block!(tx.write(value)).unwrap_infallible();
-    block!(tx.write(LF)).unwrap_infallible();
-    block!(tx.write(CR)).unwrap_infallible();
+    block!(tx.write(lf)).unwrap_infallible();
+    block!(tx.write(cr)).unwrap_infallible();
 }
